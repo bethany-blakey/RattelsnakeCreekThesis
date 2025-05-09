@@ -1,0 +1,154 @@
+---
+title: "Pebble Count Step 1: Cleaning"
+author: "Bethany Blakey"
+date: "2025"
+output: html_document
+---
+
+## Cleaning Raw Pebble Count Data
+
+### Load necessary libraries
+
+```{r}
+library(tidyverse)
+```
+
+## Raw Data:
+### Make a list of the files in the folder with the raw data
+
+Data is in rows and columns, one cell per rock that was measured
+
+```{r}
+raw_file_list <- list.files("pc_raw", pattern = "*.csv", full.names=TRUE)
+```
+
+
+### Loop through each file and do the following:
+```{r}
+for (file in raw_file_list) {
+  
+  # get the name of the file
+  name <- tools::file_path_sans_ext(basename(file))
+  
+  # read the csv
+  data <- read.csv(file, header = FALSE)
+  
+  # convert to a single row
+  size <- as.vector(t(data))
+  df_sr <- data.frame(size)
+  
+  # remove any spaces before or after from entry
+  df_sr$size <- trimws(df_sr$size)
+  
+  # create a frequency table for size
+  size <- df_sr$size
+  freq_table <- table(size)
+  
+  # convert to a dataframe
+  df <- as.data.frame(freq_table)
+  
+  # Ensure 'size' is treated as character for processing
+  df$size <- as.character(df$size)
+  
+  for (i in seq_len(nrow(df))) {
+    if (df$size[i] == "<300") {
+      df$size[i] <- 300
+    } else if (df$size[i] == ">300") {
+      df$size[i] <- 450
+    } else if (df$size[i] == "fine") {
+      df$size[i] <- 2
+    }
+  }
+  
+  df$size <- suppressWarnings(as.numeric(df$size))
+  
+  # remove empty values
+  df <- df[!is.na(df$size), ]
+  
+  # define bin edges
+  bin_edges <- c(0, 4, 5.6, 8, 11, 16, 22.6, 32, 45, 64, 90, 128, 180, 300, Inf) #when counting, includes upper limit (0-4, 4.1-5.6, etc)
+  bin_labels <- c("4", "5.6", "8", "11", "16", "22.6", "32", "45", "64", "90", "128", "180", "300", "400")
+  
+  # assign each size value to a bin if it wasn't already binned
+  df$bin <- cut(df$size, breaks = bin_edges, labels = bin_labels, right = TRUE)
+  
+  # count frequencies by bin
+  binned_df <- aggregate(Freq ~ bin, data = df, sum, na.rm = TRUE)
+  
+  # Add zeroes to bins that are missing rocks
+  binned_df <- data.frame(bin = bin_labels) %>%
+    left_join(binned_df, by = "bin") %>%
+    mutate(Freq = replace_na(Freq, 0))
+  
+  # calculate cumulative frequency
+  binned_df$c_freq <- cumsum(binned_df$Freq)
+  
+  # calculate percent finer
+  total_count <- sum(binned_df$Freq)
+  binned_df$p_finer <- (binned_df$c_freq / total_count)
+  
+  # add a column for the labels for the x-axis
+  bin_names <- c("<4", "<5.6", "<8", "<11", "<16", "<22.6", "<32", "<45", "<64", "<90", "<128", "<180", "<300", ">300")
+  
+  binned_df$bin_names <- bin_names
+  
+  binned_df$site <- name
+  
+  # rename the first column to 'size'
+  colnames(binned_df)[1] <- "size"
+  
+  # create the output path for the new CSV file
+  output_file <- paste0("pc_cleaned/", name, "_frq.csv")
+  
+  # write the dataframe to the new CSV file
+  write.csv(binned_df, output_file, row.names = FALSE)
+  
+  # print which .csv is done as it finishes
+  cat("Processed", name, "\n")
+  
+}
+```
+## Pre-Binned Data:
+Some data was recorded as counts in the bin already, which is in a different folder.
+
+### Make a list of the files in the binned data folder
+```{r}
+binned_file_list <- list.files("pc_binned", pattern = "*.csv", full.names=TRUE)
+```
+
+
+### Loop through each file and do the following:
+```{r}
+# loop through each file
+for (file in binned_file_list) {
+  # get the name of the file
+  name <- tools::file_path_sans_ext(basename(file))
+  
+  # read the csv
+  data <- read.csv(file, header = TRUE)
+  
+  # Calculate cumulative frequency
+  data$c_freq <- cumsum(data$Freq)
+  
+  # Calculate percent finer
+  total_count <- sum(data$Freq)
+  data$p_finer <- (data$c_freq / total_count)
+  
+  # add a column for the labels for plotting
+  bin_names <- c("<4", "<5.6", "<8", "<11", "<16", "<22.6", "<32", "<45", "<64", "<90", "<128", "<180", "<300", ">300")
+  
+  data$bin_names <- bin_names
+  
+  # add a column for the sites for combining with other files
+  data$site <- name
+  
+  # create the output path for the new CSV file
+  output_file <- paste0("pc_cleaned/", name, "_frq.csv")
+  
+  # write the dataframe to the new CSV file
+  write.csv(data, output_file, row.names = FALSE)
+  
+  # print which .csv is done as it finishes
+  cat("Processed", name, "\n")
+}
+```
