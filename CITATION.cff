@@ -1,0 +1,49 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: 'Citizen Science Analysis: Rattlesnake Creek'
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: Bethany
+    family-names: Blakey
+    email: bethany.june21@gmail.com
+    affiliation: University of Montana
+    orcid: 'https://orcid.org/0009-0005-5784-1024'
+repository-code: 'https://github.com/bethany-blakey/RattelsnakeCreekThesis'
+abstract: >-
+  As dam removals increase in frequency across the U.S.,
+  most research has focused on the impact of larger dam
+  removals, despite the removal of small dams being much
+  more common. Given the hundreds of small dams in Montana,
+  this research uses citizen science data collected over
+  seven years spanning before and after a 2020 small dam
+  removal in Rattlesnake Creek, Montana, to investigate
+  impact on stream ecology and morphology. We analyzed
+  pebble count grain size distributions and aquatic
+  macroinvertebrate biotic indices from 2017 to 2023 to
+  assess changes in sediment transport and macroinvertebrate
+  population as well as evaluate the efficacy of citizen
+  science for long-term stream monitoring. Our analysis
+  includes comparisons of pre- and post-dam removal data
+  collected from above and below the dam site. Our findings
+  revealed no significant changes in grain size or
+  macroinvertebrate index values between upstream and
+  downstream reaches post-dam removal. This suggests that
+  the removal of this particular small dam had minimal
+  detectable impact on sediment transport or
+  macroinvertebrate communities within the study period. Our
+  study also demonstrates the capacity for citizen science
+  programs to effectively collect robust and valuable
+  datasets. 
+keywords:
+  - Citizen Science
+  - Dam Removal
+  - Small Dam Removal
+  - Macroinvertebrates
+  - Pebble Counts
+version: '1.0'
+date-released: '2025-05-12'
