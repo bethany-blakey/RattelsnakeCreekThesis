@@ -1,0 +1,76 @@
+---
+title: "Pebble Count Step 2: Percentiles"
+author: "Bethany Blakey"
+date: '2025'
+output: html_document
+---
+
+## Calculating Percentiles for the Pebble Count Data
+
+### Load necessary libraries
+
+```{r}
+library(dplyr)
+```
+
+### Create an empty dataframe to hold the data
+
+```{r}
+pc_percentiles <- data.frame(site = integer(), year = integer(), d16 = numeric(), d50 = numeric(), d84 = numeric())
+```
+
+### make a list of all of the fines in the pc_cleaned folder
+```{r}
+csv_files <- list.files('pc_cleaned', pattern = "*.csv", full.names = TRUE)
+```
+
+### loop through the files and calculate the d16, d50, and d84 for each
+
+```{r}
+for (file in csv_files) {
+  # Extract site and year from filename
+  file_name <- basename(file)
+  site_year <- strsplit(file_name, "_")[[1]]
+  site <- as.integer(sub("s", "", site_year[1]))
+  year <- as.integer(paste0("20", tools::file_path_sans_ext(site_year[2])))
+
+  data <- read.csv(file)
+  
+  data <- data %>%
+    mutate(size = as.numeric(size), p_finer = as.numeric(p_finer)) %>%
+    arrange(p_finer) %>%                 # Ensure ascending order of p_finer
+    distinct(p_finer, .keep_all = TRUE)   # Remove duplicate p_finer values
+  
+  # Interpolate d16, d50, and d84 (ensure correct percentile values)
+  d16 <- approx(data$p_finer, data$size, xout = 16, rule = 2)$y
+  d50 <- approx(data$p_finer, data$size, xout = 50, rule = 2)$y
+  d84 <- approx(data$p_finer, data$size, xout = 84, rule = 2)$y
+  
+  # Extract size and p_finer columns
+  size <- data$size
+  p_finer <- data$p_finer
+  
+  # Interpolate d16, d50, and d84
+  d16 <- approx(p_finer, size, xout = .16)$y
+  d50 <- approx(p_finer, size, xout = .50)$y
+  d84 <- approx(p_finer, size, xout = .84)$y
+  
+  pc_percentiles <- rbind(pc_percentiles, data.frame(site = site, year = year, d16 = d16, d50 = d50, d84 = d84))
+}
+
+write.csv(pc_percentiles, "PC_percentiles.csv", row.names = FALSE)
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
